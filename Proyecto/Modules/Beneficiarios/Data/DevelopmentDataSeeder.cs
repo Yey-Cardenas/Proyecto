@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,7 @@ public static class DevelopmentDataSeeder
     public const string TotalBeneficiariosConfigurationKey = "Seeder:TotalBeneficiarios";
     public const int DefaultTotalBeneficiarios = 1000;
     private const int TamanoLote = 500;
+    private const long MaximoIndiceDni = 89_999_999;
 
     public static async Task SeedAsync(IServiceProvider services)
     {
@@ -60,46 +62,65 @@ public static class DevelopmentDataSeeder
                 $"La configuración '{TotalBeneficiariosConfigurationKey}' no puede ser negativa.");
         }
 
-        var activos = await context.Beneficiarios.CountAsync(item => item.Activo);
-        if (activos < totalBeneficiarios)
+        var totalExistente = await context.Beneficiarios.CountAsync();
+        if (totalExistente < totalBeneficiarios)
         {
             var dnisExistentes = await context.Beneficiarios
                 .Select(item => item.Dni)
                 .ToHashSetAsync();
-            var lote = new List<Beneficiario>();
-            var consecutivo = 1;
+            var totalActual = totalExistente;
+            long siguienteIndiceDni = totalExistente;
             var programaId = programa.Id;
 
-            while (activos + lote.Count < totalBeneficiarios)
+            while (totalActual < totalBeneficiarios)
             {
-                var dni = (10000000 + consecutivo).ToString();
-                consecutivo++;
-                if (!dnisExistentes.Add(dni))
+                var cantidadLote = Math.Min(TamanoLote, totalBeneficiarios - totalActual);
+                var lote = new List<Beneficiario>(cantidadLote);
+                while (lote.Count < cantidadLote)
                 {
-                    continue;
+                    if (siguienteIndiceDni > MaximoIndiceDni)
+                    {
+                        throw new InvalidOperationException(
+                            "No quedan DNI de prueba disponibles para completar el seeder.");
+                    }
+
+                    var indice = siguienteIndiceDni++;
+                    var dni = (10_000_000L + indice).ToString(CultureInfo.InvariantCulture);
+                    if (!dnisExistentes.Add(dni))
+                    {
+                        continue;
+                    }
+
+                    var comiteId = (totalActual + lote.Count) % 2 == 0
+                        ? comiteA.Id
+                        : comiteB.Id;
+                    lote.Add(new Beneficiario
+                    {
+                        Dni = dni,
+                        Nombres = $"Nombres{indice}",
+                        Apellidos = $"Apellidos{indice}",
+                        Direccion = "Dirección ficticia",
+                        ComiteId = comiteId,
+                        Activo = true,
+                        Programas = [programa]
+                    });
                 }
 
-                var comiteId = lote.Count % 2 == 0 ? comiteA.Id : comiteB.Id;
-                lote.Add(new Beneficiario
-                {
-                    Dni = dni,
-                    Nombres = $"Nombres{consecutivo}",
-                    Apellidos = $"Apellidos{consecutivo}",
-                    Direccion = "Dirección ficticia",
-                    ComiteId = comiteId,
-                    Activo = true,
-                    Programas = [programa]
-                });
+                context.Beneficiarios.AddRange(lote);
+                await context.SaveChangesAsync();
+                context.ChangeTracker.Clear();
 
-                if (lote.Count == TamanoLote
-                    || activos + lote.Count == totalBeneficiarios)
+                totalActual = await context.Beneficiarios.CountAsync();
+                if (totalActual > totalBeneficiarios)
                 {
-                    context.Beneficiarios.AddRange(lote);
-                    await context.SaveChangesAsync();
-                    context.ChangeTracker.Clear();
-                    programa = await context.Programas.SingleAsync(
-                        item => item.Id == programaId);
-                    lote.Clear();
+                    throw new InvalidOperationException(
+                        $"El seeder creó {totalActual} beneficiarios, superando el objetivo " +
+                        $"configurado de {totalBeneficiarios}.");
+                }
+
+                if (totalActual < totalBeneficiarios)
+                {
+                    programa = await context.Programas.SingleAsync(item => item.Id == programaId);
                 }
             }
         }
