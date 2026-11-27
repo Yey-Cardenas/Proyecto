@@ -60,17 +60,19 @@ public static class DevelopmentDataSeeder
                 $"La configuración '{TotalBeneficiariosConfigurationKey}' no puede ser negativa.");
         }
 
-        var activos = await context.Beneficiarios.CountAsync(item => item.Activo);
-        if (activos < totalBeneficiarios)
+                var activos = await context.Beneficiarios.CountAsync(item => item.Activo);
+        var faltantes = totalBeneficiarios - activos;
+        if (faltantes > 0)
         {
             var dnisExistentes = await context.Beneficiarios
                 .Select(item => item.Dni)
                 .ToHashSetAsync();
             var lote = new List<Beneficiario>();
             var consecutivo = 1;
+            var insertados = 0;
             var programaId = programa.Id;
 
-            while (activos + lote.Count < totalBeneficiarios)
+            while (insertados < faltantes)
             {
                 var dni = (10000000 + consecutivo).ToString();
                 consecutivo++;
@@ -79,7 +81,7 @@ public static class DevelopmentDataSeeder
                     continue;
                 }
 
-                var comiteId = lote.Count % 2 == 0 ? comiteA.Id : comiteB.Id;
+                var comiteId = insertados % 2 == 0 ? comiteA.Id : comiteB.Id;
                 lote.Add(new Beneficiario
                 {
                     Dni = dni,
@@ -90,9 +92,9 @@ public static class DevelopmentDataSeeder
                     Activo = true,
                     Programas = [programa]
                 });
+                insertados++;
 
-                if (lote.Count == TamanoLote
-                    || activos + lote.Count == totalBeneficiarios)
+                if (lote.Count == TamanoLote || insertados == faltantes)
                 {
                     context.Beneficiarios.AddRange(lote);
                     await context.SaveChangesAsync();
