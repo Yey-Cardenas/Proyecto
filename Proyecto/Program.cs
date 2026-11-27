@@ -18,6 +18,7 @@ using Proyecto.Modules.Staging.Interfaces;
 using Proyecto.Modules.Staging.Services;
 using Proyecto.Data;
 using Proyecto.Shared.Auditoria;
+using Proyecto.Modules.Beneficiarios.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +53,10 @@ builder.Services.AddScoped<IStagingService, StagingService>();
 var app = builder.Build();
 
 await RoleSeeder.EnsureRolesAsync(app.Services);
+if (app.Environment.IsDevelopment())
+{
+    await DevelopmentDataSeeder.SeedAsync(app.Services);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

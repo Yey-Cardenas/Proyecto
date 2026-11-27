@@ -1,0 +1,47 @@
+@model IEnumerable<Proyecto.Modules.Beneficiarios.Entities.Beneficiario>
+@{
+    ViewData["Title"] = "Beneficiarios";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Beneficiarios</h1>
+    <a class="btn btn-primary" asp-action="Create">Registrar beneficiario</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>DNI</th>
+                <th>Nombres</th>
+                <th>Apellidos</th>
+                <th>Comité</th>
+                <th>Estado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var beneficiario in Model)
+        {
+            <tr>
+                <td>@beneficiario.Dni</td>
+                <td>@beneficiario.Nombres</td>
+                <td>@beneficiario.Apellidos</td>
+                <td>@beneficiario.ComiteId</td>
+                <td>@(beneficiario.Activo ? "Activo" : "Inactivo")</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@beneficiario.Id">Editar</a>
+                    @if (beneficiario.Activo)
+                    {
+                        <form asp-action="Inactivar" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@beneficiario.Id" />
+                            <input type="hidden" name="motivo" value="Inactivación solicitada desde el listado" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Inactivar</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

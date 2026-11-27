@@ -1,0 +1,43 @@
+@model Proyecto.Modules.Beneficiarios.Models.BeneficiarioDto
+@{
+    ViewData["Title"] = "Editar beneficiario";
+}
+
+<h1 class="h3">Editar beneficiario</h1>
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="row g-3">
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="Activo" type="hidden" />
+    <div class="col-md-4">
+        <label asp-for="Dni" class="form-label">DNI *</label>
+        <input asp-for="Dni" class="form-control" maxlength="8" required />
+        <span asp-validation-for="Dni" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Nombres" class="form-label">Nombres *</label>
+        <input asp-for="Nombres" class="form-control" required />
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Apellidos" class="form-label">Apellidos *</label>
+        <input asp-for="Apellidos" class="form-control" required />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="ComiteId" class="form-label">Comité *</label>
+        <input asp-for="ComiteId" class="form-control" type="number" min="1" required />
+    </div>
+    <div class="col-md-6">
+        <label asp-for="ProgramaId" class="form-label">Programa *</label>
+        <input asp-for="ProgramaId" class="form-control" type="number" min="1" required />
+    </div>
+    <div class="col-12">
+        <label asp-for="Direccion" class="form-label">Dirección</label>
+        <input asp-for="Direccion" class="form-control" />
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
