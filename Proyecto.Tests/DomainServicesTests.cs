@@ -1,13 +1,17 @@
 using System.Security.Claims;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Proyecto.Data;
 using Proyecto.Data.Interfaces;
 using Proyecto.Modules.Autenticacion;
 using Proyecto.Modules.Autenticacion.Entities;
 using Proyecto.Modules.Beneficiarios.Entities;
+using Proyecto.Modules.Beneficiarios.Data;
 using Proyecto.Modules.Beneficiarios.Services;
 using Proyecto.Modules.Duplicados.Services;
 using Proyecto.Modules.Notificaciones.Services;
@@ -129,6 +133,54 @@ public sealed class DomainServicesTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task BeneficiarioService_InactivatesWithReasonAndAuditsHistory()
+    {
+        var comite = await CrearComiteAsync();
+        var beneficiario = CrearBeneficiario(comite.Id, "78901234");
+        _context.Beneficiarios.Add(beneficiario);
+        await _context.SaveChangesAsync();
+
+        var service = new BeneficiarioService(
+            new UnitOfWork(_context),
+            new AuditoriaService(_context));
+
+        Assert.True(await service.InactivarAsync(
+            beneficiario.Id, "usuario-1", "Cambio de condicion", comite.Id));
+        Assert.False(beneficiario.Activo);
+        var cambio = await _context.HistorialCambios.SingleAsync();
+        Assert.Equal("Inactivacion", cambio.Operacion);
+        Assert.Equal("usuario-1", cambio.UsuarioId);
+        Assert.Equal("Cambio de condicion", cambio.Motivo);
+        Assert.False(await service.InactivarAsync(
+            beneficiario.Id, "usuario-1", "", comite.Id));
+    }
+
+    [Fact]
+    public async Task BeneficiarioService_UpdatesAndAuditsModification()
+    {
+        var comite = await CrearComiteAsync();
+        var beneficiario = CrearBeneficiario(comite.Id, "89012345");
+        _context.Beneficiarios.Add(beneficiario);
+        await _context.SaveChangesAsync();
+
+        var datos = CrearBeneficiario(comite.Id, "89012345");
+        datos.Nombres = "Nombre editado";
+        var service = new BeneficiarioService(
+            new UnitOfWork(_context),
+            new AuditoriaService(_context));
+
+        Assert.True(await service.ActualizarAsync(
+            beneficiario.Id,
+            datos,
+            "usuario-1",
+            "Cambio de domicilio",
+            comite.Id));
+        Assert.Equal("Nombre editado", beneficiario.Nombres);
+        Assert.Equal("Actualizacion",
+            (await _context.HistorialCambios.SingleAsync()).Operacion);
+    }
+
+    [Fact]
     public async Task RevalidationService_ReturnsOnlyPendingRecords()
     {
         var comite = await CrearComiteAsync();
@@ -214,6 +266,39 @@ public sealed class DomainServicesTests : IAsyncLifetime
             dirigentePrincipal, comiteB.Id, "ComiteAccess")).Succeeded);
         Assert.True((await authorization.AuthorizeAsync(
             personalPrincipal, comiteB.Id, "ComiteAccess")).Succeeded);
+    }
+
+    [Fact]
+    public async Task DuplicateDetection_WithConfiguredBeneficiaryCount_UsesIndexAndCache()
+    {
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.Development.json")
+            .Build();
+        var totalBeneficiarios = configuration.GetValue(
+            DevelopmentDataSeeder.TotalBeneficiariosConfigurationKey,
+            DevelopmentDataSeeder.DefaultTotalBeneficiarios);
+        var comite = await CrearComiteAsync();
+        var beneficiarios = Enumerable.Range(1, totalBeneficiarios)
+            .Select(i => CrearBeneficiario(comite.Id, (10000000 + i).ToString()))
+            .ToList();
+        await _context.Beneficiarios.AddRangeAsync(beneficiarios);
+        await _context.SaveChangesAsync();
+
+        using var cache = new MemoryCache(new MemoryCacheOptions());
+        var service = new DuplicateDetectionService(new UnitOfWork(_context), cache);
+
+        var sinCache = Stopwatch.StartNew();
+        var dniBuscado = (10000000 + totalBeneficiarios).ToString();
+        Assert.True(await service.DniActivoExisteAsync(dniBuscado));
+        sinCache.Stop();
+
+        var conCache = Stopwatch.StartNew();
+        Assert.True(await service.DniActivoExisteAsync(dniBuscado));
+        conCache.Stop();
+
+        Assert.InRange(sinCache.Elapsed, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+        Assert.InRange(conCache.Elapsed, TimeSpan.Zero, TimeSpan.FromSeconds(1));
     }
 
     private async Task<Comite> CrearComiteAsync()

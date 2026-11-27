@@ -25,4 +25,10 @@
     <ProjectReference Include="..\Proyecto\Proyecto.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\Proyecto\appsettings.Development.json"
+          Link="appsettings.Development.json"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
