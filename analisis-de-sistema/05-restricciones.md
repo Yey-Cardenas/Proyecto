@@ -1,24 +1,85 @@
-# Restricciones
+# Restricciones del sistema
 
-## Restricciones de la propuesta
+## 1. Introducción
 
-| ID | Restricción | Descripción |
-|----|-------------|-------------|
-| RC01 | Arquitectura | La solución debe construirse como un **Monolito Modular**: un único backend desplegable con módulos cohesionados, no como servicios distribuidos en red. |
-| RC02 | Aplicación web / PWA | El cliente debe ser una aplicación web accesible desde navegador, instalable como PWA con soporte offline-first (React + Service Worker). |
-| RC03 | API REST | La comunicación entre el frontend y el backend debe realizarse mediante una API REST. |
-| RC04 | Tecnología de backend | El backend debe desarrollarse con Node.js 20 LTS y Express, usando Prisma como ORM. |
-| RC05 | Base de datos | La información debe almacenarse en PostgreSQL 15 con la extensión PostGIS para la cobertura geoespacial. |
-| RC06 | Gateway de mensajería | El sistema debe integrarse con un gateway externo de SMS/WhatsApp para notificar a los beneficiarios. |
-| RC07 | Infraestructura | El despliegue se realizará en dos servidores (aplicaciones y base de datos) con Ubuntu Server 22.04 LTS; la base de datos solo será accesible desde el servidor de aplicaciones. |
-| RC08 | Dispositivos | Debe funcionar en celulares Android 8 o superior y en navegadores web modernos. |
-| RC09 | Alcance de integraciones | En la primera versión, la validación del DNI se limita a cruzar los datos registrados en el propio sistema; RENIEC y SISFOH quedan para una segunda fase. |
-| RC10 | Control de versiones | El código fuente debe gestionarse con Git y mantenerse en un repositorio compartido en GitHub. |
+Este documento describe las restricciones técnicas y operativas consideradas para el desarrollo del Sistema de Gestión de Programas Sociales de Huamanga.
 
-## Restricciones adicionales propuestas por el equipo
+Las restricciones delimitan las tecnologías seleccionadas y las condiciones que deben tenerse en cuenta al diseñar e implementar la solución.
 
-| ID | Tipo | Restricción | Descripción |
-|----|------|-------------|-------------|
-| RC11 | Legal | Protección de datos personales | El sistema maneja datos personales (DNI, dirección); su tratamiento debe respetar la normativa peruana de protección de datos personales (Ley N.° 29733). |
-| RC12 | Organizacional | Presupuesto municipal limitado | La solución debe ser de bajo costo de infraestructura y operación, por eso se limita a dos servidores. |
-| RC13 | Organizacional | Usuarios con poca experiencia | Los dirigentes de comité tienen poca experiencia con tecnología, por lo que se requiere capacitación y una interfaz simple. |
+## 2. Restricciones técnicas
+
+| Código | Restricción | Descripción |
+|---|---|---|
+| RC-01 | Estilo arquitectónico | La solución se organizará como un monolito modular, evitando dividir inicialmente el sistema en microservicios independientes. |
+| RC-02 | Plataforma y framework web | El backend utilizará C# sobre .NET 9 y ASP.NET Core MVC 9. |
+| RC-03 | Tecnologías de presentación | La interfaz web utilizará Razor (`.cshtml`), HTML5, CSS3 y Bootstrap. |
+| RC-04 | Acceso a datos | Se utilizará Entity Framework Core 9 para gestionar el acceso a la base de datos. |
+| RC-05 | Motor de base de datos | La persistencia se realizará en Microsoft SQL Server. No se establece como requisito el uso de Azure SQL Database. |
+| RC-06 | Conectividad limitada | El diseño deberá considerar las limitaciones de conexión que pueden presentarse durante el trabajo de campo. |
+| RC-07 | Seguridad de la información | El sistema deberá proteger los datos personales mediante controles de acceso, comunicaciones seguras y medidas apropiadas de protección de la información. |
+| RC-08 | Compatibilidad de acceso | La interfaz deberá evaluarse en los navegadores y dispositivos definidos para el proyecto. |
+| RC-09 | Integraciones externas | Las integraciones de mensajería dependerán de la selección y disponibilidad de un proveedor compatible. |
+
+## 3. Restricciones de conectividad y funcionamiento sin conexión
+
+Debido a que algunas actividades pueden realizarse en zonas con conectividad limitada, se contempla evaluar capacidades PWA y almacenamiento local para determinadas operaciones.
+
+Antes de implementar esta capacidad, se deberá definir:
+
+- Qué operaciones estarán disponibles sin conexión.
+- Qué información podrá almacenarse temporalmente en el dispositivo.
+- Cómo se protegerán los datos personales almacenados localmente.
+- Cómo se sincronizarán los registros cuando se recupere la conectividad.
+- Cómo se detectarán y resolverán los conflictos entre datos locales y datos del servidor.
+- Cómo se informará al usuario sobre los registros pendientes, sincronizados o fallidos.
+
+El funcionamiento sin conexión no se considera una capacidad implementada hasta que se desarrolle y se valide mediante pruebas.
+
+## 4. Restricciones de base de datos
+
+Microsoft SQL Server es el motor de base de datos seleccionado para el proyecto.
+
+El acceso a los datos se realizará mediante Entity Framework Core 9 y su proveedor compatible con SQL Server.
+
+La ubicación del servidor de base de datos, la configuración de conexiones, las copias de seguridad y el entorno de alojamiento deberán definirse durante la planificación técnica.
+
+No se presupone el uso de Azure SQL Database ni de un servicio específico de alojamiento en la nube.
+
+## 5. Restricciones de integración
+
+Se contempla la posibilidad de enviar notificaciones a los beneficiarios mediante SMS o WhatsApp. Para ello, será necesario seleccionar un proveedor, evaluar sus condiciones y definir los mecanismos de integración.
+
+Los archivos históricos disponibles, como hojas de cálculo, deberán validarse antes de incorporar sus registros al sistema.
+
+RENIEC y SISFOH no se consideran dependencias confirmadas de la primera versión.
+
+## 6. Restricciones de seguridad
+
+La solución deberá contemplar:
+
+1. Autenticación de los usuarios autorizados.
+2. Autorización basada en los roles y permisos definidos.
+3. Uso de comunicaciones seguras entre el cliente y el servidor.
+4. Protección de credenciales y cadenas de conexión.
+5. Control de acceso a los datos personales.
+6. Registro de operaciones relevantes para auditoría.
+7. Protección de la información almacenada localmente si se habilita el funcionamiento sin conexión.
+
+Las medidas concretas deberán implementarse y comprobarse durante el desarrollo.
+
+## 7. Relación con la arquitectura
+
+Estas restricciones deben reflejarse en los documentos y diagramas del proyecto:
+
+- `arquitectura/enfoque-arquitectonico.md`
+- `arquitectura/estilo-arquitectonico.md`
+- `arquitectura/C4/C1-contexto.md`
+- `arquitectura/C4/C2-contenedores.md`
+- `arquitectura/C4/C3-componentes.md`
+- `arquitectura/C4/C4-codigo.md`
+
+Las tecnologías y versiones indicadas deben mantenerse uniformes en todos estos archivos.
+
+## 8. Consideraciones finales
+
+Las restricciones establecen las condiciones de partida para diseñar el sistema. Los aspectos pendientes, como la integración de mensajería, el despliegue y la sincronización sin conexión, deberán definirse y validarse antes de considerarse implementados.

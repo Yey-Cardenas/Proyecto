@@ -1,58 +1,91 @@
+# Modelo C4 — Sistema de Gestión de Programas Sociales de Huamanga
 
-# Modelo C4 del Sistema de Gestión de Programas Sociales
+## 1. Objetivo
 
-## 1. Descripción
+Este directorio contiene los diagramas del modelo C4 propuesto para el Sistema de Gestión de Programas Sociales de Huamanga.
 
-El modelo C4 permite representar la arquitectura del Sistema de Gestión de Programas Sociales de Huamanga mediante cuatro niveles de detalle: contexto, contenedores, componentes y código.
+El modelo permite representar el sistema desde diferentes niveles de detalle: su contexto, los contenedores tecnológicos, los componentes internos y una vista conceptual de código.
 
-El sistema tiene como finalidad apoyar la gestión de beneficiarios de los programas sociales, como Vaso de Leche y Comedores Populares, facilitando el registro, la validación de información, el seguimiento y la generación de reportes.
+Los diagramas forman parte de la documentación académica de la arquitectura. Representan una propuesta que deberá validarse y actualizarse durante el desarrollo del sistema.
 
-## 2. Objetivo
+## 2. Tecnologías y estilo arquitectónico
 
-Documentar la estructura arquitectónica del sistema, identificando a los usuarios, los principales contenedores, los componentes internos y las relaciones entre las clases propuestas.
+La arquitectura documentada utiliza las siguientes tecnologías:
+
+- **Lenguaje:** C#.
+- **Plataforma:** .NET 9.
+- **Framework web:** ASP.NET Core MVC 9.
+- **Interfaz:** Razor (`.cshtml`), HTML5, CSS3 y Bootstrap.
+- **Acceso a datos:** Entity Framework Core 9.
+- **Base de datos:** Microsoft SQL Server.
+- **Estilo arquitectónico:** monolito modular.
+- **Modelo de interfaz:** MVC.
+
+La solución se organiza en módulos funcionales dentro de una misma aplicación. No se plantea una arquitectura de microservicios independientes.
+
+El uso de Repository y Unit of Work no se considera obligatorio; se evaluará durante la implementación si aporta valor al diseño.
 
 ## 3. Diagramas del modelo C4
 
-### Nivel 1: Contexto del sistema
+| Nivel | Archivo | Propósito |
+|---|---|---|
+| C1 — Contexto | [C1-contexto.md](C1-contexto.md) | Muestra el sistema, sus usuarios y las entidades externas con las que podría interactuar. |
+| C2 — Contenedores | [C2-contenedores.md](C2-contenedores.md) | Representa el cliente web, la aplicación, el acceso a datos y las integraciones previstas. |
+| C3 — Componentes | [C3-componentes.md](C3-componentes.md) | Organiza los módulos funcionales, los servicios compartidos y el acceso a datos. |
+| C4 — Vista de código | [C4-codigo.md](C4-codigo.md) | Presenta un modelo UML conceptual de clases y sus relaciones. |
 
-Archivo: [C1-contexto.md](C1-contexto.md)
+## 4. Criterios de diseño
 
-Presenta el sistema en su entorno, los actores que interactúan con él y los servicios externos relacionados.
+Los diagramas siguen los siguientes criterios:
 
-### Nivel 2: Contenedores
+1. **Uniformidad tecnológica:** todos los diagramas deben reflejar ASP.NET Core MVC 9, Entity Framework Core 9 y Microsoft SQL Server.
+2. **Monolito modular:** los módulos funcionales pertenecen a una misma aplicación y se separan por responsabilidades.
+3. **Separación de responsabilidades:** la presentación, la lógica de aplicación y el acceso a datos se representan de forma diferenciada.
+4. **Trazabilidad:** los módulos deben corresponder con los requisitos funcionales, las historias de usuario y los atributos de calidad documentados.
+5. **Claridad visual:** cada diagrama debe mostrar las relaciones principales sin sobrecargarlo con detalles innecesarios.
+6. **Coherencia:** los componentes del nivel C3 deben corresponder con los contenedores descritos en C2.
+7. **Carácter conceptual:** las clases, servicios e integraciones propuestos no se consideran implementados hasta que se verifiquen en el código fuente.
 
-Archivo: [C2-contenedores.md](C2-contenedores.md)
+## 5. Consideraciones sobre los contenedores y las integraciones
 
-Describe las principales partes técnicas del sistema, como la aplicación web, el almacenamiento local, la lógica de negocio y la base de datos.
+### 5.1. Cliente web y capacidades PWA
 
-### Nivel 3: Componentes
+La interfaz se plantea para utilizarse desde un navegador web. Las capacidades PWA y el almacenamiento local se consideran parte de la experiencia del cliente, no una aplicación frontend independiente.
 
-Archivo: [C3-componentes.md](C3-componentes.md)
+El funcionamiento sin conexión y la sincronización posterior requieren diseño, implementación y pruebas específicas. Deben contemplarse la protección de los datos locales, los errores de sincronización y la resolución de conflictos.
 
-Detalla los componentes funcionales internos y sus relaciones dentro de la aplicación.
+### 5.2. Base de datos
 
-### Nivel 4: Código
+Microsoft SQL Server es el motor de base de datos seleccionado. Entity Framework Core 9 se propone para el acceso a los datos.
 
-Archivo: [C4-codigo.md](C4-codigo.md)
+No se presupone que SQL Server esté alojado en Azure ni se establece un proveedor de alojamiento específico.
 
-Presenta un modelo conceptual de las clases, servicios y elementos de acceso a datos que pueden formar parte de la solución.
+### 5.3. Notificaciones
 
-## 4. Tecnologías y decisiones arquitectónicas
+El envío de avisos por SMS o WhatsApp se considera una posible integración externa. El proveedor, sus condiciones y la forma de integración deberán definirse antes de su implementación.
 
-De acuerdo con la documentación de arquitectura del proyecto, se consideran las siguientes tecnologías y decisiones:
+### 5.4. Datos históricos e integraciones institucionales
 
-- ASP.NET Core MVC 9 para la aplicación web.
-- C# como lenguaje de programación.
-- Razor y archivos `.cshtml` para las vistas.
-- Entity Framework Core para el acceso a datos.
-- SQL Server como sistema de gestión de base de datos.
-- Arquitectura de monolito modular con separación lógica por responsabilidades.
-- Patrón Repository y Unit of Work para organizar el acceso a datos.
-- Funcionalidad PWA para apoyar el trabajo sin conexión y la sincronización posterior.
-- Integración prevista con servicios externos de mensajería SMS o WhatsApp.
+Los archivos históricos, como hojas de cálculo y registros existentes, pueden utilizarse como fuentes para la importación y validación de datos.
 
-## 5. Consideraciones
+RENIEC y SISFOH no se consideran dependencias confirmadas de la primera versión del sistema.
 
-Los diagramas documentan la arquitectura propuesta para el sistema. Los nombres de clases, servicios y componentes del nivel de código deben verificarse con la implementación real antes de considerarlos definitivos.
+## 6. Relación con la documentación del proyecto
 
-Los diagramas Mermaid se pueden visualizar en GitHub y en editores compatibles con esta sintaxis.
+Los diagramas deben revisarse junto con los siguientes documentos:
+
+- [Enfoque arquitectónico](../enfoque-arquitectonico.md).
+- [Estilo arquitectónico](../estilo-arquitectonico.md).
+- [Actores del sistema](../../analisis-de-sistema/01-actores.md).
+- [Historias de usuario](../../analisis-de-sistema/02-historias-de-usuario.md).
+- [Requisitos funcionales](../../analisis-de-sistema/03-requisitos-funcionales.md).
+- [Atributos de calidad](../../analisis-de-sistema/04-atributos-de-calidad.md).
+- [Restricciones](../../analisis-de-sistema/05-restricciones.md).
+- [Drivers arquitectónicos](../../analisis-de-sistema/06-drivers-arquitectonicos.md).
+- [Requisitos no funcionales](../../analisis-de-sistema/07-requisitos-no-funcionales.md).
+
+## 7. Estado de la documentación
+
+Los diagramas representan la arquitectura propuesta para fines de análisis y documentación académica. Deben actualizarse cuando se tomen decisiones técnicas definitivas o se implemente el sistema.
+
+Antes de considerar completa la documentación, se debe verificar que los diagramas sean legibles, que sus relaciones correspondan con los requisitos y que todas las referencias a tecnologías coincidan con el `README.md` principal del repositorio.

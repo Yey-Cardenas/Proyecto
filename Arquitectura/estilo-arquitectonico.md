@@ -1,114 +1,233 @@
-﻿# Estilo arquitectónico
+﻿# Estilo arquitectónico del sistema
 
-**Proyecto:** Sistema de Gestión de Programas Sociales – Huamanga
-**Curso:** Arquitectura de Software (IS-488) – Semestre 2026-II
-**Integrantes:** Cárdenas García, Yery May · Chipana Nuñez, Ever Neils
+## 1. Introducción
 
-## 1. Contexto
+El Sistema de Gestión de Programas Sociales de Huamanga se plantea como una aplicación web que permite gestionar información de beneficiarios, validar registros, consultar el padrón y generar reportes para el personal municipal autorizado.
 
-El sistema centraliza el padrón de beneficiarios del **Vaso de Leche** y de los **Comedores Populares** de la Municipalidad de Huamanga. Hoy esa información suele estar dispersa en listas y hojas de cálculo por comité o comedor, lo que genera duplicados, errores y poca trazabilidad.
+Para organizar la solución se propone un estilo de **monolito modular**, utilizando el patrón arquitectónico MVC (Modelo-Vista-Controlador) para estructurar la interacción entre los usuarios y la aplicación.
 
-## 2. Drivers que condicionan la elección
+Este documento describe la organización arquitectónica propuesta. La implementación y validación técnica están pendientes.
 
-| ID | Driver | Tipo |
-|---|---|---|
-| D1 | El padrón debe ser íntegro: sin beneficiarios duplicados dentro de un programa ni entre programas. | Requisito / calidad |
-| D2 | Los datos personales deben protegerse (Ley N.° 29733, Protección de Datos Personales). | Calidad / restricción legal |
-| D3 | Cada cambio del padrón y cada entrega deben ser trazables (quién, cuándo, qué). | Calidad |
-| D4 | El personal municipal y los responsables de comités tienen poca experiencia técnica. | Calidad (usabilidad) |
-| D5 | Deben poder añadirse nuevos programas sociales sin rehacer el sistema. | Calidad (mantenibilidad) |
-| D6 | Debe poder integrarse con servicios externos de validación (identidad, clasificación socioeconómica). | Restricción |
-| D7 | Aplicación web con API REST, Git/GitHub y un equipo de 2 personas. | Restricción de proyecto |
-| D8 | Disponibilidad en horario laboral y carga moderada y predecible (una municipalidad provincial). | Calidad |
+## 2. Estilo arquitectónico seleccionado: monolito modular
 
-## 3. Estilos candidatos
+El monolito modular consiste en una aplicación que se despliega como una unidad, pero que organiza sus funcionalidades en módulos con responsabilidades diferenciadas.
 
-| Criterio | Capas (monolito) | Microservicios | Hexagonal | Orientada a eventos |
-|---|:-:|:-:|:-:|:-:|
-| Simplicidad y costo (D7, D8) | 5 | 1 | 3 | 2 |
-| Integridad de datos con transacciones (D1) | 5 | 2 | 5 | 3 |
-| Seguridad y auditoría centralizadas (D2, D3) | 4 | 3 | 4 | 3 |
-| Mantenibilidad y evolución (D5) | 4 | 4 | 5 | 3 |
-| Capacidad del equipo (D7) | 5 | 1 | 3 | 2 |
-| Escalabilidad | 3 | 5 | 3 | 5 |
-| **Total (máx. 30)** | **26** | **16** | **23** | **18** |
+Para este proyecto, los módulos funcionales se agrupan en:
 
-*Puntuación cualitativa de 1 (desfavorable) a 5 (favorable), según los drivers.*
+- Gestión de beneficiarios.
+- Detección de duplicados.
+- Revalidación periódica.
+- Importación y validación de datos históricos.
+- Reportes y cobertura.
+- Gestión de notificaciones.
+- Servicios compartidos de autenticación, autorización y auditoría.
 
-## 4. Decisión
+Esta organización permite separar las responsabilidades del sistema sin tener que implementar y desplegar cada módulo como un servicio independiente.
 
-**Se adopta una arquitectura en capas (3 capas) desplegada como monolito.**
+### 2.1. Justificación
 
-Es la continuación de la arquitectura inicial del Entregable 02.
+Se propone este estilo por las siguientes razones:
 
-| Driver | Por qué las capas lo favorecen |
+1. Reduce la complejidad inicial de despliegue y administración.
+2. Facilita la organización de las funcionalidades por módulos.
+3. Permite centralizar las operaciones de persistencia en una aplicación.
+4. Favorece el mantenimiento y la evolución gradual del sistema.
+5. Se ajusta al alcance académico y a las necesidades identificadas en los requisitos.
+
+## 3. Patrón MVC
+
+El patrón Modelo-Vista-Controlador organiza la aplicación en tres responsabilidades principales.
+
+| Elemento | Responsabilidad |
 |---|---|
-| D1 | Un solo almacén de datos permite transacciones y restricciones de unicidad (por ejemplo, DNI único por programa). |
-| D2, D3 | La seguridad y la auditoría se aplican en un único punto, la capa de lógica de negocio. |
-| D4 | La capa de presentación se diseña solo para el usuario, sin mezclar reglas. |
-| D5 | Cada programa social es un módulo nuevo en la capa de negocio. |
-| D6 | Las integraciones externas se encapsulan en la capa de negocio. |
-| D7, D8 | Es simple de construir, probar y desplegar con un equipo de dos personas. |
+| Modelo | Representa los datos y conceptos del dominio que utiliza el sistema. |
+| Vista | Presenta la información y los formularios mediante Razor (`.cshtml`). |
+| Controlador | Recibe las solicitudes, coordina las operaciones y devuelve las respuestas correspondientes. |
 
-Se adopta una arquitectura en capas (Monolito Modular) optimizada para el patrón MVC en ASP.NET Core.   
+La lógica de negocio se organizará en servicios de aplicación cuando sea necesario, evitando concentrar todas las reglas en los controladores.
 
-## 5. Capas y responsabilidades
+## 4. Tecnologías propuestas
 
-| Capa | Responsabilidad | Contiene |
-|---|---|---|
-| Presentación | Interacción con el usuario. | Aplicación web, consumo de la API REST. |
-| Lógica de negocio | Reglas del dominio, validaciones, seguridad y auditoría. | Módulos de beneficiarios, programas, inscripciones, entregas, usuarios y reportes. |
-| Datos | Persistencia de la información. | Base de datos relacional. |
+| Elemento | Tecnología |
+|---|---|
+| Lenguaje | C# |
+| Plataforma | .NET 9 |
+| Framework web | ASP.NET Core MVC 9 |
+| Interfaz | Razor, HTML5, CSS3 y Bootstrap |
+| Acceso a datos | Entity Framework Core 9 |
+| Base de datos | Microsoft SQL Server |
+| Diagramas | Mermaid |
 
-**Regla de dependencia:** la presentación nunca accede directamente a la base de datos.
+Las tecnologías y versiones deben mantenerse alineadas con el `README.md` y con el archivo `analisis-de-sistema/05-restricciones.md`.
 
-## 6. Diagrama
+## 5. Organización lógica de la arquitectura
+
+La solución se organiza en cuatro áreas lógicas:
+
+### 5.1. Presentación
+
+Contiene los controladores MVC y las vistas Razor que permiten al personal municipal interactuar con la aplicación.
+
+### 5.2. Módulos funcionales
+
+Agrupa las funcionalidades de registro y consulta de beneficiarios, validación de duplicados, revalidación, importación de datos, reportes y notificaciones.
+
+### 5.3. Servicios compartidos
+
+Incluye las funciones que pueden utilizar distintos módulos, como autenticación, autorización, auditoría y coordinación de operaciones.
+
+### 5.4. Acceso a datos
+
+Utiliza Entity Framework Core 9 para realizar las operaciones de consulta y persistencia sobre Microsoft SQL Server.
+
+Los patrones Repository y Unit of Work no se consideran obligatorios en esta propuesta. Su uso deberá evaluarse cuando exista una implementación concreta y se pueda justificar su beneficio.
+
+## Estrategia de caché en memoria
+
+El sistema mantiene un enfoque de monolito modular: los módulos funcionales forman parte de una única aplicación y comparten servicios internos. Dentro de esta estructura, se propone utilizar `IMemoryCache` de ASP.NET Core para almacenar temporalmente resultados de consultas frecuentes.
+
+El caché no constituye un microservicio ni una base de datos independiente. Se ejecuta dentro del proceso de la aplicación web y puede reducir las consultas repetidas a Microsoft SQL Server cuando la información solicitada está disponible y vigente.
+
+Para mantener la coherencia de los datos, se deberán definir tiempos de expiración e invalidar o actualizar las entradas relacionadas cuando se realicen modificaciones. Se priorizarán catálogos y datos de consulta frecuente que no contengan información personal sensible.
+
+Esta estrategia es distinta del almacenamiento local previsto para las capacidades PWA: `IMemoryCache` funciona en el servidor, mientras que el almacenamiento local permite conservar determinados datos en el navegador.
+
+La estrategia está propuesta a nivel arquitectónico y deberá implementarse y validarse mediante pruebas antes de afirmar que produce mejoras de rendimiento.
+
+## 6. Diagrama del estilo arquitectónico
 
 ```mermaid
-flowchart TD
-    subgraph USUARIOS["USUARIOS"]
-        Admin["Administrador municipal"]
-        Operador["Operador de programa"]
-        Resp["Responsable de comité / comedor"]
+flowchart TB
+    USR["Personal municipal autorizado"]
+    WEB["Navegador web"]
+
+    subgraph APP["Monolito modular · ASP.NET Core MVC 9"]
+        subgraph PRESENTACION["Capa de presentación"]
+            CTRL["Controladores MVC"]
+            VIEW["Vistas Razor (.cshtml)"]
+        end
+
+        subgraph MODULOS["Módulos funcionales"]
+            subgraph GESTION["Gestión de beneficiarios"]
+                M1["Registro y actualización"]
+                M2["Consulta del padrón"]
+                M3["Estado del beneficiario"]
+            end
+
+            subgraph VALIDACION["Validación de información"]
+                M4["Detección de DNI duplicado"]
+                M5["Revalidación periódica"]
+                M6["Importación de datos históricos"]
+            end
+
+            subgraph CONSULTAS["Consultas y comunicación"]
+                M7["Reportes y cobertura"]
+                M8["Gestión de notificaciones"]
+            end
+        end
+
+        subgraph COMPARTIDOS["Servicios compartidos"]
+            SVC["Servicios de aplicación"]
+            AUTH["Autenticación y autorización"]
+            AUD["Auditoría"]
+            CACHE[("Caché en memoria<br/>IMemoryCache")]
+        end
+
+        DATA["Acceso a datos<br/>Entity Framework Core 9"]
     end
 
-    subgraph PRES["CAPA DE PRESENTACIÓN"]
-        Web["Aplicación web"]
-    end
+    DB[("Microsoft SQL Server")]
+    HIST["Archivos históricos"]
+    EXT["Servicio externo de SMS / WhatsApp"]
+    LOCAL[("Almacenamiento local PWA<br/>en el navegador")]
 
-    subgraph NEG["CAPA DE LÓGICA DE NEGOCIO"]
-        API["API REST"]
-        Mod["Módulos: Beneficiarios · Programas · Inscripciones · Entregas · Usuarios · Reportes"]
-    end
+    USR --> WEB
+    WEB --> VIEW
+    VIEW --> CTRL
 
-    subgraph DAT["CAPA DE DATOS"]
-        BD[("Base de datos relacional")]
-    end
+    CTRL --> M1
+    CTRL --> M2
+    CTRL --> M3
+    CTRL --> M4
+    CTRL --> M5
+    CTRL --> M6
+    CTRL --> M7
+    CTRL --> M8
+    CTRL -.-> AUTH
 
-    subgraph EXT["SISTEMAS EXTERNOS (posibles)"]
-        Ident["Validación de identidad"]
-        Socio["Clasificación socioeconómica"]
-    end
+    M1 --> SVC
+    M2 --> SVC
+    M3 --> SVC
+    M4 --> SVC
+    M5 --> SVC
+    M6 --> SVC
+    M7 --> SVC
+    M8 --> SVC
 
-    USUARIOS --> PRES
-    PRES --> NEG
-    API --> Mod
-    NEG --> DAT
-    NEG -->|"integración"| EXT
+    SVC --> AUD
+    SVC -->|"Consulta de datos elegibles"| CACHE
+    CACHE -.->|"Resultado almacenado válido"| SVC
+    SVC -->|"Consulta o escritura"| DATA
+    DATA --> DB
+    DB --> DATA
+
+    M6 -.->|"Lectura y validación"| HIST
+    M8 -.->|"Solicitud de envío"| EXT
+    WEB <--> LOCAL
+
+    classDef actor fill:#E8EAF6,stroke:#3949AB,color:#1A237E
+    classDef presentacion fill:#E3F2FD,stroke:#1976D2,color:#0D47A1
+    classDef modulo fill:#E8F5E9,stroke:#388E3C,color:#1B5E20
+    classDef servicio fill:#E0F2F1,stroke:#00897B,color:#004D40
+    classDef cache fill:#F3E5F5,stroke:#8E24AA,color:#4A148C
+    classDef datos fill:#FFF3E0,stroke:#F57C00,color:#E65100
+    classDef externo fill:#FCE4EC,stroke:#C2185B,color:#880E4F
+
+    class USR actor
+    class WEB,CTRL,VIEW presentacion
+    class M1,M2,M3,M4,M5,M6,M7,M8 modulo
+    class SVC,AUTH,AUD servicio
+    class CACHE cache
+    class DATA,DB,LOCAL datos
+    class HIST,EXT externo
 ```
 
-## 7. Consecuencias
+## 7. Consideraciones de conectividad
 
-**Ventajas**
-- Menor complejidad y costo de desarrollo y despliegue.
-- Consistencia fuerte del padrón gracias a transacciones.
-- Seguridad y auditoría en un solo lugar.
+El sistema contempla evaluar capacidades PWA para apoyar determinadas operaciones cuando no exista conexión a Internet.
 
-**Desventajas y mitigación**
+El uso sin conexión requiere definir qué operaciones estarán disponibles, cómo se almacenarán los datos localmente, cómo se sincronizarán y cómo se resolverán los conflictos. Estas capacidades deberán implementarse y probarse antes de considerarse disponibles.
 
-| Desventaja | Mitigación |
-|---|---|
-| Escalar implica escalar todo el sistema. | La carga es moderada; se puede replicar la aplicación si crece. |
-| Riesgo de acoplamiento entre módulos. | Organizar el código por módulos con límites claros (Mitigación: Usar Inyección de Dependencias nativa de .NET para mantener los servicios desacoplados). |
-| Un fallo puede afectar a todo el sistema. | Respaldos periódicos y manejo de errores en las integraciones. |
+## 8. Integraciones externas
 
+Se contempla la posibilidad de integrar un servicio de SMS o WhatsApp para enviar notificaciones a los beneficiarios. La elección del proveedor y los detalles de integración quedan pendientes.
+
+Los archivos históricos pueden utilizarse como fuente para importar y validar información. RENIEC y SISFOH no se consideran integraciones confirmadas de la primera versión.
+
+## 9. Relación con el modelo C4
+
+La organización del sistema se complementa con los diagramas del directorio `arquitectura/C4/`:
+
+- C1 representa el contexto del sistema.
+- C2 representa sus contenedores.
+- C3 representa sus componentes internos.
+- La vista UML conceptual presenta ejemplos de clases y relaciones.
+
+Los diagramas deben ser coherentes entre sí y con los requisitos funcionales, los atributos de calidad y las restricciones del proyecto.
+
+## 10. Conclusión
+
+El monolito modular con MVC permite organizar el sistema en responsabilidades claras y mantener una solución de complejidad controlada. La separación entre presentación, módulos funcionales, servicios compartidos y persistencia proporciona una base para el desarrollo y mantenimiento.
+
+La arquitectura descrita es una propuesta que deberá contrastarse con la implementación, las pruebas y las decisiones técnicas definitivas.
+```
+
+## Verificación
+
+Después de pegarlo y guardar con `Ctrl + S`:
+
+- Comprueba que no haya referencias a `.NET 10`, `ASP.NET Core 10` o `EF Core 10`.
+- Verifica que el diagrama se visualice correctamente en la vista previa de Markdown.
+- Confirma que el estilo siga siendo **monolito modular con MVC**, no microservicios.
+
+El siguiente paso será revisar los documentos de análisis para asegurarnos de que las tecnologías y las decisiones arquitectónicas coincidan con los requisitos. Así podremos terminar las correcciones antes de realizar el único commit.
