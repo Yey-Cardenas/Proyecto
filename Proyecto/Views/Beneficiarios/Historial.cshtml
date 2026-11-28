@@ -1,0 +1,40 @@
+@model Proyecto.Modules.Beneficiarios.Models.HistorialBeneficiarioViewModel
+@{
+    ViewData["Title"] = "Historial de cambios";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h3 mb-1">Historial de cambios</h1>
+        <p class="text-muted mb-0">@Model.Beneficiario.Nombres @Model.Beneficiario.Apellidos · DNI @Model.Beneficiario.Dni</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">Volver a beneficiarios</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead class="table-light">
+            <tr><th>Usuario</th><th>Fecha</th><th>Operación</th><th>Motivo</th></tr>
+        </thead>
+        <tbody>
+        @if (Model.Cambios.Count == 0)
+        {
+            <tr><td colspan="4" class="text-center text-muted py-4">No hay cambios registrados.</td></tr>
+        }
+        @foreach (var cambio in Model.Cambios)
+        {
+            <tr>
+                <td>@cambio.Usuario</td>
+                <td><time datetime="@cambio.Fecha.ToString("O")">@cambio.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</time></td>
+                <td>@(cambio.Operacion switch
+                {
+                    "Actualizacion" => "Actualización",
+                    "Inactivacion" => "Inactivación",
+                    _ => cambio.Operacion
+                })</td>
+                <td>@cambio.Motivo</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

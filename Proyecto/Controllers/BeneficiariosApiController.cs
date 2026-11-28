@@ -11,13 +11,15 @@ using Proyecto.Modules.Duplicados.Interfaces;
 namespace Proyecto.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Roles = IdentityRoles.DirigenteComite + "," + IdentityRoles.PersonalSubGerencia)]
 [Route("api/beneficiarios")]
 public sealed class BeneficiariosApiController(
     IBeneficiarioService beneficiarioService,
     IDuplicateDetectionService duplicateDetectionService,
     UserManager<ApplicationUser> userManager) : ControllerBase
 {
+    private const int ComiteSinAsignar = 0;
+
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<BeneficiarioDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<BeneficiarioDto>>> Get(
@@ -169,7 +171,7 @@ public sealed class BeneficiariosApiController(
             return null;
         }
 
-        return usuario.ComiteId;
+        return usuario.ComiteId ?? ComiteSinAsignar;
     }
 
     private static Beneficiario Mapear(BeneficiarioDto dto) =>

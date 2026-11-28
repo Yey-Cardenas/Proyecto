@@ -124,7 +124,10 @@ public sealed class BeneficiarioService(
         existente.Apellidos = datos.Apellidos;
         existente.Direccion = datos.Direccion;
         existente.ComiteId = datos.ComiteId;
-        existente.Programas = datos.Programas;
+        if (datos.Programas.Count > 0)
+        {
+            existente.Programas = datos.Programas;
+        }
 
         repository.Update(existente);
         await unitOfWork.SaveChangesAsync(cancellationToken);
