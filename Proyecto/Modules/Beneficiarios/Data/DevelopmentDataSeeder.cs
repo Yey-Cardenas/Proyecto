@@ -13,6 +13,17 @@ public static class DevelopmentDataSeeder
     public const string TotalBeneficiariosConfigurationKey = "Seeder:TotalBeneficiarios";
     public const int DefaultTotalBeneficiarios = 1000;
     private const int TamanoLote = 500;
+    private static readonly string[] NombresFemeninos =
+    [
+        "María", "Rosa", "Juana", "Ana", "Carmen", "Luz", "Julia", "Teresa", "Elena", "Isabel",
+        "Esperanza", "Francisca", "Mercedes", "Beatriz", "Patricia", "Sonia", "Gladys", "Edith", "Marisol", "Noemí"
+    ];
+    private static readonly string[] ApellidosAyacuchanos =
+    [
+        "Quispe", "Huamán", "Cárdenas", "De la Cruz", "Gutiérrez", "Palomino", "Huarcaya",
+        "Huaytalla", "Ochoa", "Pacheco", "Ccorimanya", "Sulca", "Chuchón", "Yucra",
+        "Pillaca", "Oré", "Llamocca", "Pariona", "Ayala", "Rojas"
+    ];
 
     public static async Task SeedAsync(IServiceProvider services)
     {
@@ -85,8 +96,9 @@ public static class DevelopmentDataSeeder
                 lote.Add(new Beneficiario
                 {
                     Dni = dni,
-                    Nombres = $"Nombres{consecutivo}",
-                    Apellidos = $"Apellidos{consecutivo}",
+                    Nombres = NombresFemeninos[insertados % NombresFemeninos.Length],
+                    Apellidos = ApellidosAyacuchanos[
+                        (insertados / NombresFemeninos.Length) % ApellidosAyacuchanos.Length],
                     Direccion = "Dirección ficticia",
                     ComiteId = comiteId,
                     Activo = true,

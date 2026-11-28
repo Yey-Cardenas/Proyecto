@@ -1,46 +1,72 @@
 @model Proyecto.Modules.Beneficiarios.Models.BeneficiarioFormViewModel
 @{
-    ViewData["Title"] = "Editar beneficiario";
+    ViewData["Title"] = "Editar beneficiaria";
+    var nombreComite = Model.Comites.FirstOrDefault(item =>
+        item.Value == Model.Beneficiario.ComiteId.ToString())?.Text ?? "No disponible";
 }
 
-<h1 class="h3 mb-3">Editar beneficiario</h1>
-<div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
-<p class="text-muted">Los campos marcados con * son obligatorios.</p>
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">Beneficiarios</p>
+        <h1>@Model.Beneficiario.Nombres @Model.Beneficiario.Apellidos</h1>
+        <p class="secondary-copy">DNI @Model.Beneficiario.Dni</p>
+    </div>
+    <a asp-action="Index" class="btn btn-quiet">Volver a beneficiarios</a>
+</section>
 
-<form asp-action="Edit" asp-route-id="@Model.Beneficiario.Id" method="post" class="row g-3">
-    <input asp-for="Beneficiario.Id" type="hidden" />
-    <input asp-for="Beneficiario.Activo" type="hidden" />
-    <div class="col-md-6">
-        <label asp-for="Beneficiario.Dni" class="form-label">DNI *</label>
-        <input asp-for="Beneficiario.Dni" class="form-control" inputmode="numeric" maxlength="8" required />
-        <span asp-validation-for="Beneficiario.Dni" class="text-danger"></span>
+<section class="detail-summary" aria-label="Resumen de beneficiaria">
+    <div>
+        <span class="meta-label">Estado</span>
+        <span class="status-tag">@(Model.Beneficiario.Activo ? "Activa" : "Inactiva")</span>
     </div>
-    <div class="col-md-6">
-        <label asp-for="Beneficiario.ComiteId" class="form-label">Comité *</label>
-        <select asp-for="Beneficiario.ComiteId" asp-items="Model.Comites" class="form-select" required>
-            <option value="">Seleccione un comité</option>
-        </select>
-        <span asp-validation-for="Beneficiario.ComiteId" class="text-danger"></span>
+    <div>
+        <span class="meta-label">Comité</span>
+        <strong>@nombreComite</strong>
     </div>
-    <div class="col-md-6">
-        <label asp-for="Beneficiario.Nombres" class="form-label">Nombres *</label>
-        <input asp-for="Beneficiario.Nombres" class="form-control" required />
-        <span asp-validation-for="Beneficiario.Nombres" class="text-danger"></span>
+    <div>
+        <span class="meta-label">Programa</span>
+        <strong>@(Model.Beneficiario.ProgramaId?.ToString() ?? "No disponible")</strong>
     </div>
-    <div class="col-md-6">
-        <label asp-for="Beneficiario.Apellidos" class="form-label">Apellidos *</label>
-        <input asp-for="Beneficiario.Apellidos" class="form-control" required />
-        <span asp-validation-for="Beneficiario.Apellidos" class="text-danger"></span>
-    </div>
-    <div class="col-12">
-        <label asp-for="Beneficiario.Direccion" class="form-label">Dirección (opcional)</label>
-        <input asp-for="Beneficiario.Direccion" class="form-control" />
-    </div>
-    <div class="col-12">
-        <button type="submit" class="btn btn-primary">Guardar cambios</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
-    </div>
-</form>
+</section>
+
+<section class="form-card mt-4">
+    <h2 class="section-title">Editar datos</h2>
+    <div asp-validation-summary="All" class="validation-summary" role="alert"></div>
+    <form asp-action="Edit" asp-route-id="@Model.Beneficiario.Id" method="post" class="row g-3">
+        <input asp-for="Beneficiario.Id" type="hidden" />
+        <input asp-for="Beneficiario.Activo" type="hidden" />
+        <div class="col-md-6">
+            <label asp-for="Beneficiario.Dni" class="form-label">DNI *</label>
+            <input asp-for="Beneficiario.Dni" class="form-control" inputmode="numeric" maxlength="8" required />
+            <span asp-validation-for="Beneficiario.Dni" class="validation-message"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Beneficiario.ComiteId" class="form-label">Comité *</label>
+            <select asp-for="Beneficiario.ComiteId" asp-items="Model.Comites" class="form-select" required>
+                <option value="">Seleccione un comité</option>
+            </select>
+            <span asp-validation-for="Beneficiario.ComiteId" class="validation-message"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Beneficiario.Nombres" class="form-label">Nombres *</label>
+            <input asp-for="Beneficiario.Nombres" class="form-control" required />
+            <span asp-validation-for="Beneficiario.Nombres" class="validation-message"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="Beneficiario.Apellidos" class="form-label">Apellidos *</label>
+            <input asp-for="Beneficiario.Apellidos" class="form-control" required />
+            <span asp-validation-for="Beneficiario.Apellidos" class="validation-message"></span>
+        </div>
+        <div class="col-12">
+            <label asp-for="Beneficiario.Direccion" class="form-label">Dirección (opcional)</label>
+            <input asp-for="Beneficiario.Direccion" class="form-control" />
+        </div>
+        <div class="col-12 form-actions">
+            <button type="submit" class="btn btn-primary">Guardar cambios</button>
+            <a asp-action="Index" class="btn btn-quiet">Cancelar</a>
+        </div>
+    </form>
+</section>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

@@ -3,36 +3,32 @@
     ViewData["Title"] = "Inicio";
 }
 
-<div class="mb-4">
-    <h1 class="display-6 fw-semibold">Programas Sociales</h1>
-    <p class="lead text-muted mb-0">Resumen de beneficiarios activos registrados.</p>
-</div>
-
-<div class="card border-primary mb-4">
-    <div class="card-body">
-        <div class="text-muted">Beneficiarios activos totales</div>
-        <div class="display-4 fw-semibold text-primary">@Model.TotalActivos</div>
+<section class="page-heading home-heading">
+    <div>
+        <p class="eyebrow">Programas Sociales</p>
+        <h1>Resumen de beneficiarios</h1>
+        <p class="secondary-copy">Información de inscripciones activas.</p>
     </div>
-</div>
+</section>
 
-<h2 class="h4 mb-3">Beneficiarios activos por comité</h2>
-<div class="table-responsive">
-    <table class="table table-striped">
-        <thead class="table-light"><tr><th>Comité</th><th class="text-end">Beneficiarios activos</th></tr></thead>
-        <tbody>
-        @if (Model.PorComite.Count == 0)
-        {
-            <tr><td colspan="2" class="text-center text-muted">Aún no hay beneficiarios activos.</td></tr>
-        }
-        @foreach (var comite in Model.PorComite)
-        {
-            <tr><td>@comite.Comite</td><td class="text-end">@comite.Total</td></tr>
-        }
-        </tbody>
-    </table>
-</div>
+<section class="summary-grid" aria-label="Resumen de beneficiarios activos">
+    <article class="summary-card summary-total">
+        <p class="summary-label">Beneficiarios activos</p>
+        <p class="summary-number">@Model.TotalActivos</p>
+        <p class="secondary-copy">Total registrado</p>
+    </article>
+    @foreach (var comite in Model.PorComite)
+    {
+        <article class="summary-card">
+            <p class="summary-label">Comité</p>
+            <h2>@comite.Comite</h2>
+            <p class="summary-number">@comite.Total</p>
+            <p class="secondary-copy">Beneficiarios activos</p>
+        </article>
+    }
+</section>
 
 @if (User.Identity?.IsAuthenticated == true)
 {
-    <a asp-controller="Beneficiarios" asp-action="Index" class="btn btn-primary">Ver beneficiarios</a>
+    <a asp-controller="Beneficiarios" asp-action="Index" class="btn btn-primary home-action">Ver beneficiarios</a>
 }

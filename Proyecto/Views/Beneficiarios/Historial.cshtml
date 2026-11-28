@@ -3,38 +3,36 @@
     ViewData["Title"] = "Historial de cambios";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<section class="page-heading">
     <div>
-        <h1 class="h3 mb-1">Historial de cambios</h1>
-        <p class="text-muted mb-0">@Model.Beneficiario.Nombres @Model.Beneficiario.Apellidos · DNI @Model.Beneficiario.Dni</p>
+        <p class="eyebrow">Beneficiarios</p>
+        <h1>Historial de cambios</h1>
+        <p class="secondary-copy">@Model.Beneficiario.Nombres @Model.Beneficiario.Apellidos · DNI @Model.Beneficiario.Dni</p>
     </div>
-    <a asp-action="Index" class="btn btn-outline-secondary">Volver a beneficiarios</a>
-</div>
+    <a asp-action="Index" class="btn btn-quiet">Volver a beneficiarios</a>
+</section>
 
-<div class="table-responsive">
-    <table class="table table-striped align-middle">
-        <thead class="table-light">
-            <tr><th>Usuario</th><th>Fecha</th><th>Operación</th><th>Motivo</th></tr>
-        </thead>
-        <tbody>
-        @if (Model.Cambios.Count == 0)
-        {
-            <tr><td colspan="4" class="text-center text-muted py-4">No hay cambios registrados.</td></tr>
-        }
-        @foreach (var cambio in Model.Cambios)
-        {
-            <tr>
-                <td>@cambio.Usuario</td>
-                <td><time datetime="@cambio.Fecha.ToString("O")">@cambio.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</time></td>
-                <td>@(cambio.Operacion switch
-                {
-                    "Actualizacion" => "Actualización",
-                    "Inactivacion" => "Inactivación",
-                    _ => cambio.Operacion
-                })</td>
-                <td>@cambio.Motivo</td>
-            </tr>
-        }
-        </tbody>
-    </table>
-</div>
+<section class="history-list" aria-label="Cambios registrados">
+    @if (Model.Cambios.Count == 0)
+    {
+        <p class="empty-state">No hay cambios registrados.</p>
+    }
+    @foreach (var cambio in Model.Cambios)
+    {
+        <article class="history-item">
+            <div class="history-heading">
+                <strong>@cambio.Usuario</strong>
+                <time class="secondary-copy" datetime="@cambio.Fecha.ToString("O")">
+                    @cambio.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                </time>
+            </div>
+            <p class="history-reason">@cambio.Motivo</p>
+            <span class="secondary-copy">@(cambio.Operacion switch
+            {
+                "Actualizacion" => "Actualización",
+                "Inactivacion" => "Inactivación",
+                _ => cambio.Operacion
+            })</span>
+        </article>
+    }
+</section>
